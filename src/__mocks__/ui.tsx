@@ -1,50 +1,41 @@
 import React from 'react'
 
-export function Button({ children, onClick, ...props }: any) {
-  return (
-    <button onClick={onClick} {...props}>
-      {children}
-    </button>
-  )
-}
+export const Button = ({
+  children,
+  onClick,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button onClick={onClick} {...props}>
+    {children}
+  </button>
+)
 
-export function Card({ children, ...props }: any) {
-  return (
-    <div {...props} data-testid="card">
-      {children}
-    </div>
-  )
-}
+export const Input = ({
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />
 
-export function CardHeader({ children, ...props }: any) {
-  return (
-    <div {...props} data-testid="card-header">
-      {children}
-    </div>
-  )
-}
+export const Table = ({ children }: { children: React.ReactNode }) => (
+  <table>{children}</table>
+)
 
-export function CardTitle({ children, ...props }: any) {
-  return (
-    <div {...props} data-testid="card-title">
-      {children}
-    </div>
-  )
-}
+export const TableHeader = ({ children }: { children: React.ReactNode }) => (
+  <thead>{children}</thead>
+)
 
-export function CardContent({ children, ...props }: any) {
-  return (
-    <div {...props} data-testid="card-content">
-      {children}
-    </div>
-  )
-}
+export const TableBody = ({ children }: { children: React.ReactNode }) => (
+  <tbody>{children}</tbody>
+)
 
-export function toast({ title, description, variant }: any) {
-  // Mock implementation
-  return {
-    title,
-    description,
-    variant,
-  }
-}
+export const TableRow = ({ children }: { children: React.ReactNode }) => (
+  <tr>{children}</tr>
+)
+
+export const TableHead = ({ children }: { children: React.ReactNode }) => (
+  <th>{children}</th>
+)
+
+export const TableCell = ({ children }: { children: React.ReactNode }) => (
+  <td>{children}</td>
+)
+
+export const toast = (props: any) => props

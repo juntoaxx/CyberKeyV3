@@ -5,6 +5,8 @@
 
 # testing
 /coverage
+.jest
+jest-results.json
 
 # next.js
 /.next/
@@ -24,6 +26,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
@@ -31,3 +34,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Test files
+/src/**/*.test.tsx.snap
+/src/**/__snapshots__/

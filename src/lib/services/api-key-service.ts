@@ -9,13 +9,32 @@ import {
   updateDoc,
   deleteDoc,
   Timestamp,
-  serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { ApiKey, CreateApiKeyDTO, UpdateApiKeyDTO } from '@/lib/models/api-key'
-import { generateSecureKey } from '@/lib/utils/crypto'
+import { encryptData, decryptData } from '@/lib/utils/crypto'
 
 const API_KEYS_COLLECTION = 'api_keys'
+
+interface StoredApiKey {
+  id: string
+  name: string
+  service: string
+  key: string
+  userId: string
+  dateAdded: string
+  active: boolean
+  credit?: number
+  fundingUrl?: string | null
+}
+
+interface StoreApiKeyDTO {
+  name: string
+  service: string
+  key: string
+  dateAdded: string
+  credit?: number
+  fundingUrl?: string | null
+}
 
 export class ApiKeyService {
   private static instance: ApiKeyService
@@ -28,95 +47,58 @@ export class ApiKeyService {
     return ApiKeyService.instance
   }
 
-  async createApiKey(userId: string, dto: CreateApiKeyDTO): Promise<ApiKey> {
-    const key = await generateSecureKey()
-    const now = Timestamp.now()
+  async storeApiKey(userId: string, dto: StoreApiKeyDTO): Promise<StoredApiKey> {
+    // Encrypt the API key before storing
+    const encryptedKey = await encryptData(dto.key)
 
-    const apiKey: Omit<ApiKey, 'id'> = {
-      key,
+    const apiKey: Omit<StoredApiKey, 'id'> = {
       userId,
       name: dto.name,
-      balance: dto.balance,
+      service: dto.service,
+      key: encryptedKey,
+      dateAdded: dto.dateAdded,
       active: true,
-      createdAt: now,
-      updatedAt: now,
-      lastUsedAt: null,
-      expiresAt: dto.expiresAt ? Timestamp.fromDate(dto.expiresAt) : null,
-      allowedOrigins: dto.allowedOrigins,
-      rateLimit: dto.rateLimit || {
-        requests: 100,
-        duration: 60, // 1 minute
-      },
+      credit: dto.credit || null,
+      fundingUrl: dto.fundingUrl || null,
     }
 
     const docRef = await addDoc(collection(db, API_KEYS_COLLECTION), apiKey)
-    return { ...apiKey, id: docRef.id }
+    return {
+      id: docRef.id,
+      ...apiKey,
+    }
   }
 
-  async getApiKey(id: string): Promise<ApiKey | null> {
-    const docRef = doc(db, API_KEYS_COLLECTION, id)
-    const docSnap = await getDoc(docRef)
+  async getApiKeys(userId: string): Promise<StoredApiKey[]> {
+    const q = query(
+      collection(db, API_KEYS_COLLECTION),
+      where('userId', '==', userId)
+    )
+    
+    const snapshot = await getDocs(q)
+    const keys: StoredApiKey[] = []
 
-    if (!docSnap.exists()) {
-      return null
+    for (const doc of snapshot.docs) {
+      const data = doc.data()
+      // Decrypt the API key when retrieving
+      const decryptedKey = await decryptData(data.key)
+      keys.push({
+        id: doc.id,
+        ...data,
+        key: decryptedKey,
+        credit: data.credit || undefined,
+        fundingUrl: data.fundingUrl || undefined,
+      } as StoredApiKey)
     }
 
-    return { id: docSnap.id, ...docSnap.data() } as ApiKey
-  }
-
-  async getApiKeyByKey(key: string): Promise<ApiKey | null> {
-    const q = query(collection(db, API_KEYS_COLLECTION), where('key', '==', key))
-    const querySnapshot = await getDocs(q)
-
-    if (querySnapshot.empty) {
-      return null
-    }
-
-    const doc = querySnapshot.docs[0]
-    return { id: doc.id, ...doc.data() } as ApiKey
-  }
-
-  async getUserApiKeys(userId: string): Promise<ApiKey[]> {
-    const q = query(collection(db, API_KEYS_COLLECTION), where('userId', '==', userId))
-    const querySnapshot = await getDocs(q)
-
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as ApiKey[]
-  }
-
-  async updateApiKey(id: string, dto: UpdateApiKeyDTO): Promise<void> {
-    const docRef = doc(db, API_KEYS_COLLECTION, id)
-    const updates: Partial<ApiKey> = {
-      ...dto,
-      updatedAt: serverTimestamp() as Timestamp,
-    }
-
-    if (dto.expiresAt !== undefined) {
-      updates.expiresAt = dto.expiresAt ? Timestamp.fromDate(dto.expiresAt) : null
-    }
-
-    await updateDoc(docRef, updates)
+    return keys
   }
 
   async deleteApiKey(id: string): Promise<void> {
-    const docRef = doc(db, API_KEYS_COLLECTION, id)
-    await deleteDoc(docRef)
+    await deleteDoc(doc(db, API_KEYS_COLLECTION, id))
   }
 
-  async updateBalance(id: string, amount: number): Promise<void> {
-    const docRef = doc(db, API_KEYS_COLLECTION, id)
-    await updateDoc(docRef, {
-      balance: amount,
-      updatedAt: serverTimestamp(),
-    })
-  }
-
-  async updateLastUsed(id: string): Promise<void> {
-    const docRef = doc(db, API_KEYS_COLLECTION, id)
-    await updateDoc(docRef, {
-      lastUsedAt: serverTimestamp(),
-    })
+  async toggleApiKeyStatus(id: string, active: boolean): Promise<void> {
+    await updateDoc(doc(db, API_KEYS_COLLECTION, id), { active })
   }
 }

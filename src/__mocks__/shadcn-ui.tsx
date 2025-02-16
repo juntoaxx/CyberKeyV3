@@ -1,15 +1,22 @@
 import React from 'react'
 
 // Mock Button component
-export const Button = ({ children, onClick, ...props }: any) => (
-  <button onClick={onClick} {...props}>
+export const Button = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ children, className, ...props }, ref) => (
+  <button ref={ref} className={className} {...props}>
     {children}
   </button>
-)
+))
+Button.displayName = 'Button'
 
 // Mock Input component
-export const Input = React.forwardRef(({ ...props }: any, ref) => (
-  <input ref={ref} {...props} />
+export const Input = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>(({ className, ...props }, ref) => (
+  <input ref={ref} className={className} {...props} />
 ))
 Input.displayName = 'Input'
 
@@ -100,6 +107,67 @@ export const CardFooter = ({ children, ...props }: any) => (
   </div>
 )
 
+// Mock Table components
+export const Table = React.forwardRef<
+  HTMLTableElement,
+  React.HTMLAttributes<HTMLTableElement>
+>(({ children, className, ...props }, ref) => (
+  <table ref={ref} className={className} {...props}>
+    {children}
+  </table>
+))
+Table.displayName = 'Table'
+
+export const TableHeader = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ children, className, ...props }, ref) => (
+  <thead ref={ref} className={className} {...props}>
+    {children}
+  </thead>
+))
+TableHeader.displayName = 'TableHeader'
+
+export const TableBody = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ children, className, ...props }, ref) => (
+  <tbody ref={ref} className={className} {...props}>
+    {children}
+  </tbody>
+))
+TableBody.displayName = 'TableBody'
+
+export const TableRow = React.forwardRef<
+  HTMLTableRowElement,
+  React.HTMLAttributes<HTMLTableRowElement>
+>(({ children, className, ...props }, ref) => (
+  <tr ref={ref} className={className} {...props}>
+    {children}
+  </tr>
+))
+TableRow.displayName = 'TableRow'
+
+export const TableHead = React.forwardRef<
+  HTMLTableCellElement,
+  React.ThHTMLAttributes<HTMLTableCellElement>
+>(({ children, className, ...props }, ref) => (
+  <th ref={ref} className={className} {...props}>
+    {children}
+  </th>
+))
+TableHead.displayName = 'TableHead'
+
+export const TableCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement>
+>(({ children, className, ...props }, ref) => (
+  <td ref={ref} className={className} {...props}>
+    {children}
+  </td>
+))
+TableCell.displayName = 'TableCell'
+
 // Mock toast
 export const toast = jest.fn()
 
@@ -121,5 +189,11 @@ export default {
   CardDescription,
   CardContent,
   CardFooter,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
   toast,
 }
