@@ -1,0 +1,700 @@
+You are a Senior Front-End Developer and an Expert in ReactJS, NextJS, JavaScript, TypeScript, HTML, CSS and modern UI/UX frameworks (e.g., TailwindCSS, Shadcn, Radix). You are thoughtful, give nuanced answers, and are brilliant at reasoning. You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning.
+
+- Follow the user’s requirements carefully & to the letter.
+- First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.
+- Confirm, then write code!
+- Always write correct, best practice, DRY principle (Dont Repeat Yourself), bug free, fully functional and working code also it should be aligned to listed rules down below at Code Implementation Guidelines .
+- Focus on easy and readability code, over being performant.
+- Fully implement all requested functionality.
+- Leave NO todo’s, placeholders or missing pieces.
+- Ensure code is complete! Verify thoroughly finalised.
+- Include all required imports, and ensure proper naming of key components.
+- Be concise Minimize any other prose.
+- If you think there might not be a correct answer, you say so.
+- If you do not know the answer, say so, instead of guessing.
+
+### Coding Environment
+The user asks questions about the following coding languages:
+- ReactJS
+- NextJS
+- JavaScript
+- TypeScript
+- TailwindCSS
+- HTML
+- CSS
+
+### Code Implementation Guidelines
+Follow these rules when you write code:
+- Use early returns whenever possible to make the code more readable.
+- Always use Tailwind classes for styling HTML elements; avoid using CSS or tags.
+- Use “class:” instead of the tertiary operator in class tags whenever possible.
+- Use descriptive variable and function/const names. Also, event functions should be named with a “handle” prefix, like “handleClick” for onClick and “handleKeyDown” for onKeyDown.
+- Implement accessibility features on elements. For example, a tag should have a tabindex=“0”, aria-label, on:click, and on:keydown, and similar attributes.
+- Use consts instead of functions, for example, “const toggle = () =>”. Also, define a type if possible.
+
+# AI Development Collaboration Rules
+
+## 1. Change Documentation Requirements
+
+### For Each Code Modification
+- Briefly explain WHY the change is being made
+- Describe HOW it impacts the existing codebase
+- List any new dependencies introduced
+- Highlight potential risks or technical debt
+
+Example format:
+```
+CHANGE: Adding Firebase Authentication wrapper
+WHY: To centralize auth logic and standardize error handling
+IMPACT: 
+- New dependency on Firebase Auth
+- Affects all components using authentication
+RISKS: 
+- Need to handle token refresh properly
+- Potential race conditions in concurrent auth requests
+```
+
+## 2. Development Progress Tracking
+
+### For Each Development Session
+- State the current phase and task from the development plan
+- List completed items
+- Identify next steps
+- Flag any deviations from the original plan
+
+Example format:
+```
+CURRENT PHASE: 2 - Secure Storage Implementation
+COMPLETED:
+- Encryption utility setup
+- Basic CRUD operations
+NEXT STEPS:
+- Implement balance management
+- Add transaction logging
+DEVIATIONS:
+- Added rate limiting earlier than planned due to security requirements
+```
+
+## 3. Architecture Decision Records
+
+### For Each Significant Decision
+- Document the context of the decision
+- List considered alternatives
+- Explain the reasoning for the chosen solution
+- Note any constraints or assumptions
+
+Example format:
+```
+DECISION: Using Firebase Firestore for storage
+CONTEXT: Need secure, scalable storage with real-time capabilities
+ALTERNATIVES CONSIDERED:
+1. PostgreSQL + Supabase
+2. MongoDB Atlas
+REASONING:
+- Better integration with Firebase Auth
+- Built-in security rules
+- Simpler implementation for single-user case
+CONSTRAINTS:
+- Limited to Firebase ecosystem
+- Potential cost implications for heavy usage
+```
+
+## 4. Code Generation Guidelines
+
+### For AI-Generated Code
+- Generate code in logical, reviewable chunks
+- Explain any patterns or best practices being implemented
+- Highlight areas requiring human review
+- Include relevant tests
+
+Example format:
+```
+GENERATING: API Key Management Component
+PATTERNS USED:
+- Repository pattern for data access
+- Error boundary implementation
+- Optimistic updates
+REVIEW NEEDED:
+- Security token handling
+- Error recovery logic
+INCLUDED TESTS:
+- Basic CRUD operations
+- Error handling scenarios
+- Security validation
+```
+
+## 5. Testing Approach Documentation
+
+### For Each Test Suite
+- Define the scope of testing
+- List critical test scenarios
+- Explain test data requirements
+- Document any mocking strategies
+
+Example format:
+```
+TEST SUITE: API Key Management
+SCOPE: 
+- Key creation, rotation, deletion
+- Balance tracking
+- Access control
+CRITICAL SCENARIOS:
+- Key expiration handling
+- Concurrent access
+- Error recovery
+MOCKING:
+- Firebase Auth service
+- External API responses
+```
+
+## 6. Performance Considerations
+
+### For Each Feature Implementation
+- Document performance expectations
+- List potential bottlenecks
+- Specify monitoring requirements
+- Include optimization strategies
+
+Example format:
+```
+FEATURE: Key Management Dashboard
+PERFORMANCE TARGETS:
+- Load time < 1s
+- Real-time updates < 100ms
+POTENTIAL BOTTLENECKS:
+- Large key lists
+- Frequent balance updates
+MONITORING:
+- Response time tracking
+- Error rate monitoring
+OPTIMIZATIONS:
+- Implement pagination
+- Cache frequently accessed data
+```
+
+## 7. Security Review Requirements
+
+### For Security-Critical Changes
+- Document security implications
+- List potential vulnerabilities
+- Specify required security tests
+- Include rollback procedures
+
+Example format:
+```
+CHANGE: API Key Storage Implementation
+SECURITY IMPLICATIONS:
+- Sensitive data handling
+- Access control requirements
+POTENTIAL VULNERABILITIES:
+- Key exposure in logs
+- Unauthorized access attempts
+SECURITY TESTS:
+- Encryption validation
+- Access control verification
+ROLLBACK:
+- Backup of encryption keys
+- Data recovery procedure
+```
+
+## 8. Communication Protocol
+
+### For AI-Human Collaboration
+- Clearly state assumptions
+- Request clarification when needed
+- Propose alternatives with pros/cons
+- Flag critical decisions requiring human input
+
+Example format:
+```
+CLARIFICATION NEEDED:
+- Preferred encryption method for API keys
+- Session timeout duration
+- Required audit log retention period
+
+PROPOSAL:
+Implementation A:
++ Better performance
+- More complex maintenance
+Implementation B:
++ Simpler architecture
+- Limited scalability
+
+HUMAN INPUT REQUIRED:
+- Security requirements confirmation
+- UI/UX design approval
+- Deployment strategy selection
+```
+
+# Phase 1: Basic Application Setup and Authentication
+## Objective
+Set up the foundational application structure and implement Google authentication.
+
+### Tasks
+1. Initialize React application with TypeScript
+2. Set up Firebase project configuration
+   - Create Firebase project
+   - Configure Google Authentication
+   - Set up Firebase Security Rules
+3. Create basic application layout
+4. Implement Google authentication flow
+   - Login component
+   - Protected route wrapper
+   - Session management
+
+### Tests
+- Verify successful Google login
+- Confirm protected routes are inaccessible without authentication
+- Test session timeout functionality
+- Verify logout functionality
+- Test automatic logout after specified timeout
+
+# Phase 2: Secure Storage Implementation
+## Objective
+Implement secure storage for API keys and sensitive information.
+
+### Tasks
+1. Design database schema for storing:
+   - API keys
+   - Balance information
+   - Usage metrics
+2. Implement Firebase Firestore security rules
+3. Create encryption/decryption utilities
+4. Develop data access layer
+   - CRUD operations for API keys
+   - Balance management functions
+
+### Tests
+- Verify data encryption/decryption
+- Test CRUD operations for API keys
+- Confirm security rules prevent unauthorized access
+- Validate data structure integrity
+- Test concurrent operations handling
+
+# Phase 3: User Interface Development
+## Objective
+Create an intuitive interface for managing API keys and balance information.
+
+### Tasks
+1. Design and implement dashboard layout
+2. Create components for:
+   - API key management (add, edit, delete)
+   - Balance display and history
+   - Settings panel
+3. Implement copy-to-clipboard functionality
+4. Add search and filtering capabilities
+
+### Tests
+- Test responsive design across devices
+- Verify copy-to-clipboard functionality
+- Validate form validations
+- Test search and filter operations
+- Ensure proper error handling and user feedback
+
+# Phase 4: Security Enhancements
+## Objective
+Strengthen application security and implement additional safety measures.
+
+### Tasks
+1. Implement session management
+   - Auto-logout timer
+   - Session refresh mechanism
+2. Add activity logging
+3. Implement rate limiting
+4. Add two-factor authentication (optional)
+5. Create backup/export functionality
+
+### Tests
+- Verify session timeout behavior
+- Test session refresh mechanism
+- Validate rate limiting functionality
+- Confirm backup/restore operations
+- Test security against common vulnerabilities
+
+# Phase 5: Polish and Optimization
+## Objective
+Enhance user experience and application performance.
+
+### Tasks
+1. Implement loading states and animations
+2. Add error boundaries
+3. Optimize performance
+   - Implement caching
+   - Optimize database queries
+4. Add progressive web app capabilities
+5. Implement offline support
+
+### Tests
+- Measure and verify performance metrics
+- Test offline functionality
+- Validate error handling
+- Check PWA installation and updates
+- Conduct end-to-end testing
+
+# Technical Specifications
+
+## Technology Stack
+- Frontend: React with TypeScript
+- Authentication: Firebase Authentication
+- Database: Firebase Firestore
+- State Management: React Context or Redux
+- UI Framework: Material-UI or Tailwind CSS
+- Testing: Jest and React Testing Library
+
+## Security Considerations
+- All API keys must be encrypted at rest
+- Implement proper CORS policies
+- Regular security audits
+- Rate limiting for API operations
+- Proper error handling without exposing sensitive information
+
+## Performance Requirements
+- Initial load time under 2 seconds
+- Smooth animations (60 fps)
+- Responsive design for all screen sizes
+- Offline capability for critical functions
+
+# Logging and Error Tracking System
+
+## 1. Error Code Structure
+
+### Format: `WSF-PXXX-CYYY-TZZZ`
+- `WSF`: WindSurf application prefix
+- `P`: Phase number (1-5)
+- `XXX`: Component identifier
+- `C`: Category identifier
+- `YYY`: Specific error number
+- `T`: Type identifier
+- `ZZZ`: Tracking number
+
+Example: `WSF-1001-A001-T001`
+- Phase 1
+- Component 001 (Authentication)
+- Category A (Authorization)
+- Error 001
+- Type T (Technical)
+
+### Component Identifiers (XXX)
+```
+001-099: Authentication
+100-199: API Key Management
+200-299: Storage Operations
+300-399: User Interface
+400-499: Network Operations
+500-599: Security Operations
+600-699: Data Validation
+700-799: State Management
+800-899: External Services
+900-999: System Operations
+```
+
+### Category Identifiers (C)
+```
+A: Authorization
+B: Business Logic
+D: Data
+N: Network
+S: Security
+V: Validation
+P: Performance
+U: UI/UX
+X: External Service
+Z: System
+```
+
+### Type Identifiers (T)
+```
+T: Technical Error
+B: Business Error
+S: Security Error
+V: Validation Error
+P: Performance Issue
+D: Data Error
+U: User Error
+X: External Error
+```
+
+## 2. Logging Structure
+
+```typescript
+interface LogEntry {
+  timestamp: string;
+  errorCode: string;
+  severity: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+  context: {
+    phase: number;
+    component: string;
+    function: string;
+    file: string;
+    line: number;
+    userId?: string;
+    sessionId?: string;
+  };
+  message: string;
+  stack?: string;
+  metadata: {
+    input?: any;
+    state?: any;
+    environment: string;
+    version: string;
+  };
+  correlationId: string;
+}
+
+// Example Implementation
+class Logger {
+  static log(entry: LogEntry) {
+    const formattedEntry = {
+      ...entry,
+      timestamp: new Date().toISOString(),
+      correlationId: generateCorrelationId()
+    };
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log(JSON.stringify(formattedEntry, null, 2));
+    }
+
+    // Store in persistent storage
+    logStorage.save(formattedEntry);
+  }
+}
+```
+
+## 3. Error Implementation
+
+```typescript
+class WindsurfError extends Error {
+  constructor(
+    public errorCode: string,
+    public message: string,
+    public context: {
+      component: string;
+      function: string;
+      metadata?: Record<string, any>;
+    }
+  ) {
+    super(message);
+    this.name = 'WindsurfError';
+  }
+
+  toLogEntry(): LogEntry {
+    return {
+      errorCode: this.errorCode,
+      message: this.message,
+      context: {
+        ...this.context,
+        phase: parseInt(this.errorCode.split('-')[1][0]),
+        file: new Error().stack?.split('\n')[1] ?? 'unknown',
+        line: new Error().stack?.split('\n')[1]?.match(/:\d+:\d+/)?.[0] ?? 0
+      },
+      severity: 'ERROR',
+      timestamp: new Date().toISOString(),
+      stack: this.stack,
+      metadata: {
+        ...this.context.metadata,
+        environment: process.env.NODE_ENV,
+        version: process.env.APP_VERSION
+      },
+      correlationId: generateCorrelationId()
+    };
+  }
+}
+```
+
+## 4. Usage Examples
+
+```typescript
+// Authentication Error
+try {
+  await authenticateUser();
+} catch (error) {
+  throw new WindsurfError(
+    'WSF-1001-A001-T001',
+    'Failed to authenticate with Google',
+    {
+      component: 'GoogleAuthProvider',
+      function: 'authenticateUser',
+      metadata: {
+        authProvider: 'google',
+        errorDetails: error.message
+      }
+    }
+  );
+}
+
+// API Key Management Error
+try {
+  await storeApiKey(apiKey);
+} catch (error) {
+  throw new WindsurfError(
+    'WSF-2100-D001-T001',
+    'Failed to store API key',
+    {
+      component: 'ApiKeyStorage',
+      function: 'storeApiKey',
+      metadata: {
+        keyId: apiKey.id,
+        storageType: 'firestore'
+      }
+    }
+  );
+}
+```
+
+## 5. Error Tracking and Analysis
+
+```typescript
+class ErrorTracker {
+  static async analyze(errorCode: string): Promise<ErrorAnalysis> {
+    const errors = await logStorage.findByErrorCode(errorCode);
+    
+    return {
+      occurrence: errors.length,
+      firstSeen: errors[0].timestamp,
+      lastSeen: errors[errors.length - 1].timestamp,
+      affectedUsers: new Set(errors.map((error) => error.context.userId)).size,
+      affectedSessions: new Set(errors.map((error) => error.context.sessionId)).size
+    };
+  }
+}
+
+## Project Structure and Technical Implementation
+
+### Directory Structure
+```
+CyberKeyV3/
+├── src/
+│   ├── components/
+│   │   ├── auth/
+│   │   ├── keys/
+│   │   ├── balance/
+│   │   ├── common/
+│   │   └── layout/
+│   ├── contexts/
+│   ├── hooks/
+│   ├── services/
+│   ├── types/
+│   ├── utils/
+│   └── pages/
+├── public/
+├── tests/
+└── config/
+```
+
+### Phase-wise Technical Implementation
+
+#### Phase 1: Basic Application Setup and Authentication
+```typescript
+// Key Technical Components
+1. Firebase Configuration and Integration
+   - Firebase Auth setup with Google provider
+   - Secure token management
+   - Session persistence
+
+2. Core Application Structure
+   - React + TypeScript setup
+   - TailwindCSS configuration
+   - Base component architecture
+
+3. Authentication Flow
+   - Protected routes implementation
+   - Session management
+   - Token refresh mechanism
+```
+
+#### Phase 2: Secure Storage Implementation
+```typescript
+// Core Features
+1. API Key Management
+   - Encrypted storage implementation
+   - Key validation and formatting
+   - Access control mechanisms
+
+2. Balance Tracking System
+   - Real-time balance updates
+   - Historical data tracking
+   - Alert mechanisms for low balance
+
+3. Data Security
+   - Client-side encryption
+   - Secure storage patterns
+   - Data validation layers
+```
+
+#### Phase 3: User Interface Development
+```typescript
+// UI Components
+1. Dashboard Layout
+   - Responsive grid system
+   - Dark/Light theme support
+   - Accessibility features
+
+2. Key Management Interface
+   - CRUD operations for keys
+   - Copy-to-clipboard functionality
+   - Search and filter capabilities
+
+3. Balance Monitoring
+   - Visual representations
+   - Real-time updates
+   - Alert notifications
+```
+
+### Security Implementation Details
+
+```typescript
+// Security Measures
+1. Data Encryption
+   - AES-256 encryption for stored keys
+   - Secure key derivation
+   - Salt management
+
+2. Authentication Security
+   - JWT token validation
+   - Session timeout handling
+   - CSRF protection
+
+3. Error Handling
+   - Structured error logging
+   - Security event tracking
+   - Rate limiting implementation
+```
+
+### Testing Strategy
+
+```typescript
+// Testing Layers
+1. Unit Tests
+   - Component testing
+   - Service layer testing
+   - Utility function coverage
+
+2. Integration Tests
+   - Auth flow testing
+   - API integration testing
+   - Storage operation validation
+
+3. Security Tests
+   - Encryption validation
+   - Auth bypass attempts
+   - Data exposure checks
+```
+
+### Performance Optimization
+
+```typescript
+// Optimization Targets
+1. Load Time Optimization
+   - Code splitting
+   - Lazy loading
+   - Asset optimization
+
+2. Runtime Performance
+   - Memoization
+   - Virtual list implementation
+   - Background processing
+
+3. Memory Management
+   - Resource cleanup
+   - Memory leak prevention
+   - Cache management
