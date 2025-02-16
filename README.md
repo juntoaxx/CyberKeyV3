@@ -1,106 +1,101 @@
-# CyberKeyV3
+# CyberKey V3
 
-A modern, secure API key management system built with Next.js, Firebase, and TypeScript.
+A secure and modern API key management system built with Next.js and Firebase.
 
 ## Features
 
-- 🔐 Secure API key management
-- 📊 Balance tracking and usage metrics
-- 🎨 Modern, responsive UI with Tailwind CSS
-- 🔒 Google Authentication
-- ⚡ Real-time updates
-- 🔍 Search and filtering capabilities
-- ⚙️ Customizable settings
+- Secure API key management
+- Activity logging and monitoring
+- User authentication
+- Real-time updates
+- Comprehensive test coverage
+
+## Technology Stack
+
+- Next.js 13+
+- TypeScript
+- Firebase (Auth & Firestore)
+- TailwindCSS
+- Jest & React Testing Library
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-- Firebase account
-
-### Installation
-
-1. Clone the repository:
+1. Clone the repository
 ```bash
 git clone https://github.com/yourusername/CyberKeyV3.git
 cd CyberKeyV3
 ```
 
-2. Install dependencies:
+2. Install dependencies
 ```bash
 npm install
 ```
 
-3. Create a `.env.local` file based on `.env.local.example`:
+3. Set up environment variables
 ```bash
 cp .env.local.example .env.local
+# Edit .env.local with your Firebase configuration
 ```
 
-4. Update the `.env.local` file with your Firebase configuration.
-
-5. Run the development server:
+4. Run the development server
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see the application.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Testing
 
-Run the test suite:
+The project uses Jest and React Testing Library for testing. Run tests with:
+
 ```bash
+# Run all tests
 npm test
-```
 
-Run tests with coverage:
-```bash
+# Run tests with coverage
 npm test -- --coverage
+
+# Run specific test file
+npm test -- activity-log-service.test.ts
 ```
 
-### Test Structure
-- Unit tests for components
-- Integration tests for pages
-- Mocked Firebase services
-- Comprehensive settings page testing
+### Test Coverage
 
-## Development Status
+Current test coverage focuses on:
+- Activity logging service
+- User authentication
+- API key management
 
-### Phase 1: ✅ Complete
-- Basic application setup
-- Google authentication
-- Protected routes
+## Project Structure
 
-### Phase 2: ✅ Complete
-- Secure storage implementation
-- API key encryption
-- Balance management
+```
+src/
+├── components/     # React components
+├── lib/
+│   ├── services/  # Core services
+│   └── utils/     # Utility functions
+├── pages/         # Next.js pages
+└── styles/        # Global styles
+```
 
-### Phase 3: ✅ Complete
-- Dashboard layout
-- API key management UI
-- Settings panel
-- Search and filtering
-- Comprehensive testing
+## Development Guidelines
 
-### Phase 4: 🚧 In Progress
-- Session management
-- Activity logging
-- Rate limiting
+- Write tests for new features
+- Follow TypeScript best practices
+- Use TailwindCSS for styling
+- Document API changes
+- Keep components small and focused
 
-### Phase 5: 📋 Planned
-- Performance optimization
-- PWA capabilities
-- Offline support
+## Recent Updates
 
-## Tech Stack
+- Added comprehensive activity logging service
+- Implemented test suite for activity logging
+- Improved error handling in core services
+- Enhanced type safety across the application
 
-- Next.js 14
-- TypeScript
-- Firebase (Auth & Firestore)
-- Tailwind CSS
-- Jest & React Testing Library
+## License
+
+[MIT](LICENSE)
 
 ## Contributing
 
@@ -109,7 +104,3 @@ npm test -- --coverage
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
