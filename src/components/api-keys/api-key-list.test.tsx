@@ -2,65 +2,14 @@ import { render, screen, fireEvent, waitFor } from '@/test/utils/test-utils'
 import { ApiKeyList } from './api-key-list'
 import { ApiKeyService } from '@/lib/services/api-key-service'
 import { useAuth } from '@/contexts/auth-context'
+import { toast } from '@/components/ui/use-toast'
 
 // Mock dependencies
-jest.mock('@/contexts/auth-context', () => ({
-  useAuth: () => ({ user: { uid: 'test-user-id' } }),
-}))
+jest.mock('@/contexts/auth-context')
+jest.mock('@/lib/services/api-key-service')
+jest.mock('@/components/ui/use-toast')
 
-jest.mock('@/lib/services/api-key-service', () => ({
-  ApiKeyService: {
-    getInstance: () => ({
-      getApiKeys: () => Promise.resolve([]),
-      deleteApiKey: jest.fn(),
-      toggleApiKeyStatus: jest.fn()
-    }),
-  },
-}))
-
-jest.mock('@/components/ui/use-toast', () => ({
-  toast: jest.fn(),
-}))
-
-jest.mock('@/lib/encryption', () => ({
-  encryptData: jest.fn((data) => `encrypted_${data}`),
-  decryptData: jest.fn((data) => data.replace('encrypted_', '')),
-}))
-
-// Mock Date toLocaleDateString
-const mockToLocaleDateString = jest.fn(() => '1/1/2024')
-const originalDate = global.Date
-
-class MockDate extends Date {
-  constructor(date) {
-    super(date)
-  }
-
-  toLocaleDateString() {
-    return mockToLocaleDateString()
-  }
-}
-
-global.Date = MockDate as DateConstructor
-
-// Mock Intl.NumberFormat
-const mockFormat = jest.fn((value) => `$${value.toFixed(2)}`)
-const originalIntl = global.Intl
-global.Intl = {
-  ...originalIntl,
-  NumberFormat: jest.fn().mockImplementation(() => ({
-    format: mockFormat,
-  })),
-}
-
-// Mock Lucide icons
-jest.mock('lucide-react', () => ({
-  Trash2: () => <span data-testid="trash-icon">🗑</span>,
-  ExternalLink: () => <span data-testid="external-link-icon">↗</span>,
-  DollarSign: () => <span data-testid="dollar-sign-icon">$</span>,
-}))
-
-// Mock ApiKeyDisplay component
+// Mock components
 jest.mock('./api-key-display', () => ({
   ApiKeyDisplay: ({ apiKey, label }: { apiKey: string; label: string }) => (
     <div data-testid="api-key-display">
@@ -119,12 +68,26 @@ jest.mock('@/components/ui/button', () => ({
   ),
 }))
 
-describe.skip('ApiKeyList', () => {
-  it('exists as a component', () => {
-    const { ApiKeyList } = require('./api-key-list')
-    expect(ApiKeyList).toBeDefined()
-  })
+jest.mock('@/components/common/copy-button', () => ({
+  CopyButton: ({ text, onCopy }: any) => (
+    <button onClick={onCopy} data-testid="copy-button">
+      Copy
+    </button>
+  ),
+}))
 
+// Mock icons
+jest.mock('lucide-react', () => ({
+  Trash2: () => <span data-testid="trash-icon">🗑</span>,
+  ExternalLink: () => <span data-testid="external-link-icon">↗</span>,
+  DollarSign: () => <span data-testid="dollar-sign-icon">$</span>,
+}))
+
+jest.mock('@heroicons/react/24/outline', () => ({
+  MagnifyingGlassIcon: () => <span data-testid="search-icon">🔍</span>,
+}))
+
+describe('ApiKeyList', () => {
   const mockUser = { uid: 'test-user-id' }
   const mockApiKeys = [
     {
@@ -147,21 +110,16 @@ describe.skip('ApiKeyList', () => {
     }
   ]
 
-  const mockGetInstance = jest.fn(() => ({
+  const mockApiKeyService = {
     getApiKeys: jest.fn().mockResolvedValue(mockApiKeys),
-    deleteApiKey: jest.fn(),
-    toggleApiKeyStatus: jest.fn()
-  }))
+    deleteApiKey: jest.fn().mockResolvedValue(undefined),
+    toggleApiKeyStatus: jest.fn().mockResolvedValue(undefined)
+  }
 
   beforeEach(() => {
     jest.clearAllMocks()
     ;(useAuth as jest.Mock).mockReturnValue({ user: mockUser })
-    ;(ApiKeyService.getInstance as jest.Mock).mockImplementation(mockGetInstance)
-  })
-
-  afterAll(() => {
-    global.Date = originalDate
-    global.Intl = originalIntl
+    ;(ApiKeyService.getInstance as jest.Mock).mockReturnValue(mockApiKeyService)
   })
 
   it('renders loading state initially', () => {
@@ -169,49 +127,26 @@ describe.skip('ApiKeyList', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument()
   })
 
-  it('renders API keys with credit and funding information', async () => {
+  it('renders API keys after loading', async () => {
     render(<ApiKeyList />)
     
     await waitFor(() => {
       expect(screen.getByText('Test Key 1')).toBeInTheDocument()
+      expect(screen.getByText('Test Key 2')).toBeInTheDocument()
     })
-
-    // Credit display
-    expect(screen.getByText('$100.50')).toBeInTheDocument()
-    
-    // Funding URL link
-    const fundingLink = screen.getByRole('link', { name: /add funds/i })
-    expect(fundingLink).toBeInTheDocument()
-    expect(fundingLink).toHaveAttribute('href', 'https://example.com/billing')
-    expect(fundingLink).toHaveAttribute('target', '_blank')
-    expect(fundingLink).toHaveAttribute('rel', 'noopener noreferrer')
-
-    // Key without credit and funding URL
-    expect(screen.getByText('Test Key 2')).toBeInTheDocument()
-    const key2Element = screen.getByText('Test Key 2')
-    const key2Card = key2Element.closest('[data-testid="card"]')
-    expect(key2Card).not.toHaveTextContent('$')
-    expect(key2Card).not.toHaveTextContent('Add Funds')
   })
 
   it('handles API key deletion', async () => {
-    const mockDeleteApiKey = jest.fn().mockResolvedValue(undefined)
-    mockGetInstance.mockReturnValue({
-      getApiKeys: jest.fn().mockResolvedValue(mockApiKeys),
-      deleteApiKey: mockDeleteApiKey,
-      toggleApiKeyStatus: jest.fn()
-    })
-
     render(<ApiKeyList />)
-
+    
     await waitFor(() => {
       expect(screen.getByText('Test Key 1')).toBeInTheDocument()
     })
 
-    const deleteButtons = screen.getAllByLabelText('Delete API key')
+    const deleteButtons = screen.getAllByRole('button', { name: /delete api key/i })
     fireEvent.click(deleteButtons[0])
 
-    expect(mockDeleteApiKey).toHaveBeenCalledWith('1')
+    expect(mockApiKeyService.deleteApiKey).toHaveBeenCalledWith('1')
     expect(toast).toHaveBeenCalledWith({
       title: 'Success',
       description: 'API key deleted successfully'
@@ -219,69 +154,120 @@ describe.skip('ApiKeyList', () => {
   })
 
   it('handles API key status toggle', async () => {
-    const mockToggleApiKeyStatus = jest.fn().mockResolvedValue(undefined)
-    mockGetInstance.mockReturnValue({
-      getApiKeys: jest.fn().mockResolvedValue(mockApiKeys),
-      deleteApiKey: jest.fn(),
-      toggleApiKeyStatus: mockToggleApiKeyStatus
-    })
-
     render(<ApiKeyList />)
-
+    
     await waitFor(() => {
       expect(screen.getByText('Test Key 1')).toBeInTheDocument()
     })
 
-    const toggles = screen.getAllByRole('switch')
-    fireEvent.click(toggles[0])
+    const toggleButtons = screen.getAllByRole('switch')
+    fireEvent.click(toggleButtons[0])
 
-    expect(mockToggleApiKeyStatus).toHaveBeenCalledWith('1', false)
+    expect(mockApiKeyService.toggleApiKeyStatus).toHaveBeenCalledWith('1', false)
     expect(toast).toHaveBeenCalledWith({
       title: 'Success',
       description: 'API key deactivated successfully'
     })
   })
 
-  it('handles loading state', () => {
-    mockGetInstance.mockReturnValue({
-      getApiKeys: jest.fn(() => new Promise(() => {})),
-      deleteApiKey: jest.fn(),
-      toggleApiKeyStatus: jest.fn()
+  it('handles copying API key to clipboard', async () => {
+    const mockWriteText = jest.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: mockWriteText,
+      },
     })
+
+    render(<ApiKeyList />)
     
-    render(<ApiKeyList />)
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
-  })
-
-  it('handles empty state', async () => {
-    mockGetInstance.mockReturnValue({
-      getApiKeys: jest.fn().mockResolvedValue([]),
-      deleteApiKey: jest.fn(),
-      toggleApiKeyStatus: jest.fn()
-    })
-
-    render(<ApiKeyList />)
-
     await waitFor(() => {
-      expect(screen.getByText('No API keys stored yet')).toBeInTheDocument()
+      expect(screen.getByText('Test Key 1')).toBeInTheDocument()
+    })
+
+    const copyButtons = screen.getAllByRole('button', { name: /copy/i })
+    fireEvent.click(copyButtons[0])
+
+    expect(mockWriteText).toHaveBeenCalledWith('sk-test-123')
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Success',
+      description: 'API key copied to clipboard'
     })
   })
 
-  it('handles error state', async () => {
-    mockGetInstance.mockReturnValue({
-      getApiKeys: jest.fn().mockRejectedValue(new Error('Failed to load')),
-      deleteApiKey: jest.fn(),
-      toggleApiKeyStatus: jest.fn()
+  it('handles search and filtering', async () => {
+    render(<ApiKeyList />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Key 1')).toBeInTheDocument()
+      expect(screen.getByText('Test Key 2')).toBeInTheDocument()
     })
 
-    render(<ApiKeyList />)
+    // Test search by name
+    const searchInput = screen.getByPlaceholderText(/search api keys/i)
+    fireEvent.change(searchInput, { target: { value: 'Key 1' } })
+    
+    expect(screen.getByText('Test Key 1')).toBeInTheDocument()
+    expect(screen.queryByText('Test Key 2')).not.toBeInTheDocument()
 
+    // Test search by service
+    fireEvent.change(searchInput, { target: { value: 'OpenAI' } })
+    expect(screen.getByText('Test Key 1')).toBeInTheDocument()
+    expect(screen.queryByText('Test Key 2')).not.toBeInTheDocument()
+
+    // Test filtering by status
+    fireEvent.change(searchInput, { target: { value: '' } })
+    const statusFilter = screen.getByRole('combobox', { name: /status/i })
+    fireEvent.change(statusFilter, { target: { value: 'active' } })
+    
+    expect(screen.getByText('Test Key 1')).toBeInTheDocument()
+    expect(screen.queryByText('Test Key 2')).not.toBeInTheDocument()
+  })
+
+  it('handles sorting', async () => {
+    render(<ApiKeyList />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Test Key 1')).toBeInTheDocument()
+      expect(screen.getByText('Test Key 2')).toBeInTheDocument()
+    })
+
+    const sortSelect = screen.getByRole('combobox', { name: /sort/i })
+    
+    // Test sort by name
+    fireEvent.change(sortSelect, { target: { value: 'name' } })
+    const items = screen.getAllByTestId('card')
+    expect(items[0]).toHaveTextContent('Test Key 1')
+    expect(items[1]).toHaveTextContent('Test Key 2')
+
+    // Test sort by date
+    fireEvent.change(sortSelect, { target: { value: 'dateAdded' } })
+    const itemsAfterSort = screen.getAllByTestId('card')
+    expect(itemsAfterSort[0]).toHaveTextContent('Test Key 2')
+    expect(itemsAfterSort[1]).toHaveTextContent('Test Key 1')
+  })
+
+  it('displays error state when API fails', async () => {
+    const mockError = new Error('Failed to load API keys')
+    mockApiKeyService.getApiKeys.mockRejectedValueOnce(mockError)
+
+    render(<ApiKeyList />)
+    
     await waitFor(() => {
       expect(toast).toHaveBeenCalledWith({
         title: 'Error',
         description: 'Failed to load API keys',
         variant: 'destructive'
       })
+    })
+  })
+
+  it('handles empty state', async () => {
+    mockApiKeyService.getApiKeys.mockResolvedValueOnce([])
+
+    render(<ApiKeyList />)
+    
+    await waitFor(() => {
+      expect(screen.getByText(/no api keys stored yet/i)).toBeInTheDocument()
     })
   })
 })

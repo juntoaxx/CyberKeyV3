@@ -1,126 +1,115 @@
-# CyberKey V3
+# CyberKeyV3
 
-Advanced API Key Management System built with Next.js, TypeScript, and Firebase.
-
-## Current Development Status
-
-### Completed Features
-- Project Setup and Configuration
-- Authentication System
-  - Google Authentication Integration
-  - Protected Routes Implementation
-  - Auth Context and Hooks
-- Core UI Components
-  - Modern UI with Tailwind CSS and shadcn/ui
-  - Responsive Design
-  - Layout Components
-- Testing Infrastructure
-  - Jest Configuration
-  - React Testing Library Setup
-  - Auth Component Tests
-- API Key Management
-  - Key Generation System
-  - Usage Tracking
-  - Rate Limiting
-
-### In Progress
-- Dashboard UI
-  - Key Management Interface
-  - Usage Statistics
-  - User Settings
-
-### Development Roadmap
-
-#### Phase 1: Core Infrastructure (Completed)
-- Project Setup
-- Authentication System
-- Testing Framework
-- Basic UI Components
-
-#### Phase 2: Key Management (Completed)
-- API Key Generation
-- Key Storage System
-- Usage Tracking
-- Rate Limiting Implementation
-
-#### Phase 3: User Interface (Upcoming)
-- Dashboard Development
-- Analytics Integration
-- User Settings
-- Documentation
-
-#### Phase 4: Advanced Features (Planned)
-- Team Management
-- Billing Integration
-- Advanced Analytics
-- API Documentation
+A modern, secure API key management system built with Next.js, Firebase, and TypeScript.
 
 ## Features
 
-- Google Authentication
-- Protected Routes
-- Modern UI with Tailwind CSS and shadcn/ui
-- Responsive Design
-- Type-Safe Development
+- 🔐 Secure API key management
+- 📊 Balance tracking and usage metrics
+- 🎨 Modern, responsive UI with Tailwind CSS
+- 🔒 Google Authentication
+- ⚡ Real-time updates
+- 🔍 Search and filtering capabilities
+- ⚙️ Customizable settings
 
 ## Getting Started
 
-1. Clone the repository
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- Firebase account
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/CyberKeyV3.git
+cd CyberKeyV3
+```
+
 2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up Firebase:
-   - Create a new Firebase project
-   - Enable Google Authentication
-   - Copy your Firebase configuration
-   - Create a `.env.local` file based on `.env.local.example`
-
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Project Structure
-
-```
-src/
-├── app/                    # Next.js app directory
-├── components/            # React components
-│   ├── auth/             # Authentication components
-│   ├── layout/           # Layout components
-│   └── ui/               # UI components
-├── contexts/             # React contexts
-├── lib/                  # Library code
-└── types/               # TypeScript types
+```bash
+npm install
 ```
 
-## Technologies Used
+3. Create a `.env.local` file based on `.env.local.example`:
+```bash
+cp .env.local.example .env.local
+```
+
+4. Update the `.env.local` file with your Firebase configuration.
+
+5. Run the development server:
+```bash
+npm run dev
+```
+
+Visit `http://localhost:3000` to see the application.
+
+## Testing
+
+Run the test suite:
+```bash
+npm test
+```
+
+Run tests with coverage:
+```bash
+npm test -- --coverage
+```
+
+### Test Structure
+- Unit tests for components
+- Integration tests for pages
+- Mocked Firebase services
+- Comprehensive settings page testing
+
+## Development Status
+
+### Phase 1: ✅ Complete
+- Basic application setup
+- Google authentication
+- Protected routes
+
+### Phase 2: ✅ Complete
+- Secure storage implementation
+- API key encryption
+- Balance management
+
+### Phase 3: ✅ Complete
+- Dashboard layout
+- API key management UI
+- Settings panel
+- Search and filtering
+- Comprehensive testing
+
+### Phase 4: 🚧 In Progress
+- Session management
+- Activity logging
+- Rate limiting
+
+### Phase 5: 📋 Planned
+- Performance optimization
+- PWA capabilities
+- Offline support
+
+## Tech Stack
 
 - Next.js 14
 - TypeScript
+- Firebase (Auth & Firestore)
 - Tailwind CSS
-- shadcn/ui
-- Firebase Authentication
-- Firebase Firestore
-
-## Development
-
-- Run tests: `npm test`
-- Build: `npm run build`
-- Lint: `npm run lint`
+- Jest & React Testing Library
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
