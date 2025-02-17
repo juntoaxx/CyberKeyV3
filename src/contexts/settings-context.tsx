@@ -1,110 +1,151 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
-import { useAuth } from './auth-context'
-import type { UserSettings, SettingsContextType } from '@/types/settings'
+'use client';
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from './auth-context';
+import type { UserSettings, SettingsContextType } from '@/types/settings';
+
+const COLLECTION = 'user_settings';
 
 const defaultSettings: UserSettings = {
-  apiKeyDefaults: {
-    expirationDays: 30,
-    usageLimit: null,
-    allowedDomains: [],
-  },
   notifications: {
-    emailNotifications: true,
-    balanceAlerts: true,
-    lowBalanceThreshold: 100,
-    keyExpirationWarning: true,
-    keyExpirationDays: 7,
+    emailEnabled: false,
+    browserEnabled: false,
+    daysBeforeExpiration: 3,
+    balanceAlerts: false,
+    lowBalanceThreshold: 10,
+    notificationFrequency: 'daily',
+    smtpSettings: undefined,
+    notificationEmail: undefined,
   },
   preferences: {
     theme: 'system',
-    dateFormat: 'YYYY-MM-DD',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    currency: 'USD',
+    timezone: 'UTC',
+    defaultExpirationDays: 30,
   },
-}
+};
 
-const SettingsContext = createContext<SettingsContextType | null>(null)
+const SettingsContext = createContext<SettingsContextType | null>(null);
 
 export const useSettings = () => {
-  const context = useContext(SettingsContext)
+  const context = useContext(SettingsContext);
   if (!context) {
-    throw new Error('useSettings must be used within a SettingsProvider')
+    throw new Error('useSettings must be used within a SettingsProvider');
   }
-  return context
-}
+  return context;
+};
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useAuth()
-  const [settings, setSettings] = useState<UserSettings | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+  const { user } = useAuth();
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      setSettings(null)
-      setIsLoading(false)
-      return
-    }
+    let unsubscribe: (() => void) | undefined;
 
-    const settingsRef = doc(db, 'users', user.uid, 'settings', 'preferences')
-    const unsubscribe = onSnapshot(
-      settingsRef,
-      (doc) => {
-        if (doc.exists()) {
-          setSettings(doc.data() as UserSettings)
-        } else {
-          // Initialize settings document if it doesn't exist
-          setDoc(settingsRef, defaultSettings)
-          setSettings(defaultSettings)
-        }
-        setIsLoading(false)
-      },
-      (err) => {
-        setError(err)
-        setIsLoading(false)
+    const initializeSettings = async () => {
+      if (!user) {
+        setSettings(null);
+        setIsLoading(false);
+        return;
       }
-    )
 
-    return () => unsubscribe()
-  }, [user])
+      try {
+        setIsLoading(true);
+        const userSettingsRef = doc(db, COLLECTION, user.uid);
+        
+        // First, try to get the existing settings
+        const docSnap = await getDoc(userSettingsRef);
+        
+        if (!docSnap.exists()) {
+          // If no settings exist, create them with defaults
+          await setDoc(userSettingsRef, defaultSettings);
+          setSettings(defaultSettings);
+        }
+        
+        // Set up real-time listener
+        unsubscribe = onSnapshot(
+          userSettingsRef,
+          (doc) => {
+            if (doc.exists()) {
+              setSettings(doc.data() as UserSettings);
+              setError(null);
+            }
+          },
+          (err) => {
+            console.error('Settings sync error:', err);
+            setError(err instanceof Error ? err : new Error('Failed to sync settings'));
+          }
+        );
+
+        setError(null);
+      } catch (err) {
+        console.error('Error initializing settings:', err);
+        setError(err instanceof Error ? err : new Error('Failed to initialize settings'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeSettings();
+
+    // Cleanup function
+    return () => {
+      if (unsubscribe) {
+        console.log('Cleaning up settings listener');
+        unsubscribe();
+      }
+    };
+  }, [user]); // Only re-run when user changes
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
-    if (!user || !settings) return
+    if (!user || !settings) return;
 
     try {
-      const settingsRef = doc(db, 'users', user.uid, 'settings', 'preferences')
       const updatedSettings = {
         ...settings,
         ...newSettings,
-      }
-      await updateDoc(settingsRef, updatedSettings)
+      };
+
+      const userSettingsRef = doc(db, COLLECTION, user.uid);
+      await setDoc(userSettingsRef, updatedSettings);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to update settings'))
-      throw err
+      console.error('Error updating settings:', err);
+      setError(err instanceof Error ? err : new Error('Failed to update settings'));
+      throw err;
     }
-  }
+  };
 
   const resetSettings = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      const settingsRef = doc(db, 'users', user.uid, 'settings', 'preferences')
-      await setDoc(settingsRef, defaultSettings)
+      const userSettingsRef = doc(db, COLLECTION, user.uid);
+      await setDoc(userSettingsRef, defaultSettings);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to reset settings'))
-      throw err
+      console.error('Error resetting settings:', err);
+      setError(err instanceof Error ? err : new Error('Failed to reset settings'));
+      throw err;
     }
-  }
+  };
 
   return (
     <SettingsContext.Provider
-      value={{ settings, isLoading, error, updateSettings, resetSettings }}
+      value={{
+        settings,
+        isLoading,
+        error,
+        updateSettings,
+        resetSettings,
+      }}
     >
       {children}
     </SettingsContext.Provider>
-  )
-}
+  );
+};

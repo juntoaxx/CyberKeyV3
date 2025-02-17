@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
+import { checkExpiringKeys } from './check-expiring-keys'
 
 admin.initializeApp()
 
@@ -155,3 +156,5 @@ export const monitorSuspiciousActivity = functions.firestore
 
     return null
   })
+
+export { checkExpiringKeys }

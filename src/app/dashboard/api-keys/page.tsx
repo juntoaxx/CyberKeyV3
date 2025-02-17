@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import { ApiKey } from '@/lib/models/api-key'
-import { ApiKeyService } from '@/lib/services/api-key-service'
+import type { ApiKey } from '@/types/api-key'
+import { getUserApiKeys } from '@/services/api-keys'
 import { CreateApiKeyForm } from '@/components/api-keys/create-api-key-form'
 import { ApiKeyList } from '@/components/api-keys/api-key-list'
 
@@ -17,8 +17,7 @@ export default function ApiKeysPage() {
 
     try {
       setLoading(true)
-      const apiKeyService = ApiKeyService.getInstance()
-      const keys = await apiKeyService.getUserApiKeys(user.uid)
+      const keys = await getUserApiKeys(user.uid)
       setApiKeys(keys)
     } catch (error) {
       console.error('Error loading API keys:', error)
@@ -30,6 +29,10 @@ export default function ApiKeysPage() {
   useEffect(() => {
     loadApiKeys()
   }, [user])
+
+  const handleKeyCreated = () => {
+    loadApiKeys()
+  }
 
   if (loading) {
     return (
@@ -54,7 +57,7 @@ export default function ApiKeysPage() {
       <div className="mb-8">
         <h2 className="mb-4 text-xl font-semibold">Create New API Key</h2>
         <div className="rounded-lg border p-4">
-          <CreateApiKeyForm />
+          <CreateApiKeyForm onSuccess={handleKeyCreated} />
         </div>
       </div>
 

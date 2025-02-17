@@ -15,6 +15,13 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { CopyButton } from '@/components/common/copy-button'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import EditApiKeyForm from './edit-api-key-form';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface ApiKey {
   id: string
@@ -34,6 +41,7 @@ export function ApiKeyList() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [sortBy, setSortBy] = useState<'dateAdded' | 'name' | 'service'>('dateAdded')
+  const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -94,6 +102,11 @@ export function ApiKeyList() {
       })
     }
   }
+
+  const handleEditSuccess = () => {
+    setEditingKey(null);
+    loadApiKeys();
+  };
 
   const formatCredit = (credit?: number) => {
     if (credit === undefined || credit === null) return null
@@ -193,7 +206,7 @@ export function ApiKeyList() {
         {filteredAndSortedKeys.map((apiKey) => (
           <Card key={apiKey.id}>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-start">
                 <div>
                   <CardTitle>{apiKey.name}</CardTitle>
                   <CardDescription>{apiKey.service}</CardDescription>
@@ -211,6 +224,14 @@ export function ApiKeyList() {
                     aria-label="Delete API key"
                   >
                     <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setEditingKey(apiKey)}
+                    aria-label="Edit API key"
+                  >
+                    Edit
                   </Button>
                   <CopyButton
                     text={apiKey.key}
@@ -258,6 +279,21 @@ export function ApiKeyList() {
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!editingKey} onOpenChange={() => setEditingKey(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit API Key</DialogTitle>
+          </DialogHeader>
+          {editingKey && (
+            <EditApiKeyForm
+              apiKey={editingKey}
+              onSuccess={handleEditSuccess}
+              onCancel={() => setEditingKey(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

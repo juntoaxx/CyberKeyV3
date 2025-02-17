@@ -1,26 +1,30 @@
-export interface ApiKeyDefaults {
-  expirationDays: number
-  usageLimit: number | null
-  allowedDomains: string[]
+export interface SmtpSettings {
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  password: string;
+  fromEmail: string;
 }
 
 export interface NotificationSettings {
-  emailNotifications: boolean
-  balanceAlerts: boolean
-  lowBalanceThreshold: number
-  keyExpirationWarning: boolean
-  keyExpirationDays: number
+  emailEnabled: boolean;
+  browserEnabled: boolean;
+  daysBeforeExpiration: number; // Send notification X days before expiration
+  balanceAlerts: boolean;
+  lowBalanceThreshold: number;
+  notificationFrequency: 'hourly' | 'daily' | 'weekly';
+  smtpSettings?: SmtpSettings;
+  notificationEmail?: string; // Email address to receive notifications
 }
 
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system'
-  dateFormat: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD'
   timezone: string
-  currency: 'USD' | 'EUR' | 'GBP'
+  defaultExpirationDays: number
 }
 
 export interface UserSettings {
-  apiKeyDefaults: ApiKeyDefaults
   notifications: NotificationSettings
   preferences: UserPreferences
 }

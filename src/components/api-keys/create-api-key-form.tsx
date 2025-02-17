@@ -1,147 +1,193 @@
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/auth-context'
-import { ApiKeyService } from '@/lib/services/api-key-service'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { toast } from '@/components/ui/use-toast'
+'use client';
 
-export function CreateApiKeyForm() {
-  const router = useRouter()
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [name, setName] = useState('')
-  const [key, setKey] = useState('')
-  const [service, setService] = useState('')
-  const [credit, setCredit] = useState('')
-  const [fundingUrl, setFundingUrl] = useState('')
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
+import { createApiKey } from '@/services/api-keys';
+import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/lib/auth';
+
+interface Props {
+  onSuccess?: () => void;
+}
+
+export default function CreateApiKeyForm({ onSuccess }: Props) {
+  const { user } = useAuth();
+  const [name, setName] = useState('');
+  const [organizationId, setOrganizationId] = useState('');
+  const [balance, setBalance] = useState('');
+  const [fundingLink, setFundingLink] = useState('');
+  const [expiresInDays, setExpiresInDays] = useState('30');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      setLoading(true)
-      const apiKeyService = ApiKeyService.getInstance()
-      
-      await apiKeyService.storeApiKey(user.uid, {
-        name,
-        key,
-        service,
-        credit: parseFloat(credit) || 0,
-        fundingUrl: fundingUrl || null,
-        dateAdded: new Date().toISOString(),
-      })
+      if (!user) {
+        throw new Error('You must be logged in to create an API key');
+      }
 
-      toast({
-        title: 'Success',
-        description: 'API key stored successfully',
-      })
+      // Validate required fields first
+      const nameValue = String(name || '').trim();
+      const orgIdValue = String(organizationId || '').trim();
+      const fundingLinkValue = String(fundingLink || '').trim();
+      const balanceValue = balance ? parseFloat(balance) : 0;
+      const daysValue = parseInt(expiresInDays || '30');
 
-      router.refresh()
-      setName('')
-      setKey('')
-      setService('')
-      setCredit('')
-      setFundingUrl('')
-    } catch (error) {
-      console.error('Error storing API key:', error)
+      if (!nameValue) {
+        throw new Error('Name is required');
+      }
+      if (!orgIdValue) {
+        throw new Error('Organization ID is required');
+      }
+
+      const formData = {
+        name: nameValue,
+        organizationId: orgIdValue,
+        key: orgIdValue, // Using organizationId as the key
+        providerName: 'Anthropic',
+        userId: user.uid,
+        balance: balanceValue,
+        fundingLink: fundingLinkValue || null,
+        expiresAt: new Date(Date.now() + daysValue * 24 * 60 * 60 * 1000)
+      };
+
+      const result = await createApiKey(formData);
+
+      if (result.error) {
+        toast({
+          title: 'Error',
+          description: result.error,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Success',
+          description: 'API key created successfully',
+        });
+        // Reset form
+        setName('');
+        setOrganizationId('');
+        setBalance('');
+        setFundingLink('');
+        setExpiresInDays('30');
+        onSuccess?.();
+      }
+    } catch (err) {
       toast({
         title: 'Error',
-        description: 'Failed to store API key',
+        description: err instanceof Error ? err.message : 'Failed to create API key',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
+  const handleBalanceCheck = (orgId: string) => {
+    if (!orgId) return;
+    const url = `https://console.anthropic.com/api/organizations/${orgId}/prepaid/credits`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="service" className="block text-sm font-medium">
-          Service Name
-        </label>
-        <Input
-          id="service"
-          type="text"
-          value={service}
-          onChange={(e) => setService(e.target.value)}
-          placeholder="e.g., OpenAI, AWS, GitHub"
-          required
-          className="mt-1"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium">
-          Key Name
-        </label>
+        <Label htmlFor="name">Name</Label>
         <Input
           id="name"
-          type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g., Production API Key"
+          placeholder="My API Key"
           required
-          className="mt-1"
         />
       </div>
 
-      <div>
-        <label htmlFor="key" className="block text-sm font-medium">
-          API Key
-        </label>
-        <Input
-          id="key"
-          type="password"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          placeholder="Enter your API key"
-          required
-          className="mt-1"
-        />
+      <div className="space-y-2">
+        <Label htmlFor="organizationId">Organization ID</Label>
+        <div className="flex space-x-2">
+          <Input
+            id="organizationId"
+            value={organizationId}
+            onChange={(e) => setOrganizationId(e.target.value)}
+            placeholder="e.g., 01234567-89ab-cdef-0123-456789abcdef"
+            required
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleBalanceCheck(organizationId)}
+            disabled={!organizationId}
+            className="whitespace-nowrap"
+          >
+            Check Balance
+          </Button>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Find your Organization ID in your{' '}
+          <a
+            href="https://console.anthropic.com/settings"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline underline-offset-4"
+          >
+            Anthropic settings
+          </a>
+        </p>
       </div>
 
       <div>
-        <label htmlFor="credit" className="block text-sm font-medium">
-          Available Credit
-        </label>
+        <Label htmlFor="balance">Current Balance</Label>
         <Input
-          id="credit"
+          id="balance"
           type="number"
-          value={credit}
-          onChange={(e) => setCredit(e.target.value)}
-          placeholder="0.00"
           step="0.01"
           min="0"
-          className="mt-1"
+          value={balance}
+          onChange={(e) => setBalance(e.target.value)}
+          placeholder="Enter your current balance"
         />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Optional: Track available credit for this service
+        <p className="text-sm text-muted-foreground mt-1">
+          Enter your current balance after checking it on Anthropic's website
         </p>
       </div>
 
       <div>
-        <label htmlFor="fundingUrl" className="block text-sm font-medium">
-          Funding Page URL
-        </label>
+        <Label htmlFor="fundingLink">Funding Link (Optional)</Label>
         <Input
-          id="fundingUrl"
-          type="url"
-          value={fundingUrl}
-          onChange={(e) => setFundingUrl(e.target.value)}
-          placeholder="https://example.com/billing"
-          className="mt-1"
+          id="fundingLink"
+          value={fundingLink}
+          onChange={(e) => setFundingLink(e.target.value)}
+          placeholder="https://..."
         />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Optional: Link to the service's billing/funding page
-        </p>
       </div>
 
-      <Button type="submit" disabled={loading}>
-        {loading ? 'Storing...' : 'Store API Key'}
+      <div>
+        <Label htmlFor="expiresInDays">Expires In (Days)</Label>
+        <Input
+          id="expiresInDays"
+          type="number"
+          min="1"
+          value={expiresInDays}
+          onChange={(e) => setExpiresInDays(e.target.value)}
+          required
+        />
+      </div>
+
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Creating...
+          </>
+        ) : (
+          'Create API Key'
+        )}
       </Button>
     </form>
-  )
+  );
 }
